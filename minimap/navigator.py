@@ -27,13 +27,15 @@ class MinimapNavigator:
     """Calcula erro angular para seguir a linha do GPS no minimapa rotativo."""
 
     def __init__(self, control_cfg: dict[str, Any]) -> None:
-        self.deadband_deg = float(control_cfg.get("steer_deadband_deg", 3))
-        self.kp = float(control_cfg.get("steer_kp", 1.0))
-        self.kd = float(control_cfg.get("steer_kd", 0.35))
+        self.kp = float(control_cfg.get("steer_kp", 0.9))
+        self.kd = float(control_cfg.get("steer_kd", 0.3))
+        self.error_smoothing = float(control_cfg.get("error_smoothing", 0.45))
         self._prev_error: float | None = None
+        self._smooth_error: float | None = None
 
     def reset(self) -> None:
         self._prev_error = None
+        self._smooth_error = None
 
     def compute_steer_error(self, result: MinimapResult) -> float | None:
         if result.gps_target_x is None or result.gps_target_y is None:
@@ -53,6 +55,7 @@ class MinimapNavigator:
 
         if steer_error is None:
             self._prev_error = None
+            self._smooth_error = None
             return NavigationOutput(
                 steer_error_deg=None,
                 steer_command_deg=0.0,
@@ -60,17 +63,21 @@ class MinimapNavigator:
                 gps_active=result.active,
             )
 
+        if self._smooth_error is None:
+            self._smooth_error = steer_error
+        else:
+            alpha = self.error_smoothing
+            self._smooth_error = alpha * steer_error + (1.0 - alpha) * self._smooth_error
+
         derivative = 0.0
         if self._prev_error is not None:
-            derivative = steer_error - self._prev_error
-        self._prev_error = steer_error
+            derivative = self._smooth_error - self._prev_error
+        self._prev_error = self._smooth_error
 
-        command = self.kp * steer_error + self.kd * derivative
-        if abs(command) < self.deadband_deg:
-            command = 0.0
+        command = self.kp * self._smooth_error + self.kd * derivative
 
         return NavigationOutput(
-            steer_error_deg=steer_error,
+            steer_error_deg=self._smooth_error,
             steer_command_deg=command,
             has_target=has_target,
             gps_active=result.active,

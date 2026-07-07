@@ -36,5 +36,6 @@ def build_minimap_detector(config: dict[str, Any]) -> MinimapDetector:
         player_center_ratio=(float(center["x"]), float(center["y"])),
         arrow_white_threshold=int(minimap.get("arrow_white_threshold", 200)),
         min_gps_pixels=int(minimap.get("min_gps_pixels", 40)),
-        target_distance_px=float(minimap.get("target_distance_px", 55.0)),
+        target_distance_px=float(minimap.get("target_distance_px", 50.0)),
+        target_smoothing=float(minimap.get("target_smoothing", 0.4)),
     )

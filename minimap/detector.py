@@ -32,7 +32,8 @@ class MinimapDetector:
         player_center_ratio: tuple[float, float] = (0.5, 0.5),
         arrow_white_threshold: int = 200,
         min_gps_pixels: int = 40,
-        target_distance_px: float = 55.0,
+        target_distance_px: float = 50.0,
+        target_smoothing: float = 0.4,
     ) -> None:
         self.gps_hsv_lower = np.array(gps_hsv_lower, dtype=np.uint8)
         self.gps_hsv_upper = np.array(gps_hsv_upper, dtype=np.uint8)
@@ -42,6 +43,13 @@ class MinimapDetector:
         self.arrow_white_threshold = arrow_white_threshold
         self.min_gps_pixels = min_gps_pixels
         self.target_distance_px = target_distance_px
+        self.target_smoothing = target_smoothing
+        self._smooth_target_x: float | None = None
+        self._smooth_target_y: float | None = None
+
+    def reset(self) -> None:
+        self._smooth_target_x = None
+        self._smooth_target_y = None
 
     def player_position(self, frame_shape: tuple[int, ...]) -> tuple[float, float]:
         height, width = frame_shape[:2]
@@ -71,14 +79,40 @@ class MinimapDetector:
         dx = xs.astype(np.float32) - player_x
         dy = ys.astype(np.float32) - player_y
         dist = np.sqrt(dx * dx + dy * dy)
-        ahead = dist >= self.target_distance_px * 0.45
-        if not np.any(ahead):
-            idx = int(np.argmax(dist))
+
+        # No minimapa rotativo, "frente" = y menor que o jogador (para cima na tela).
+        forward = dy < -4
+        if np.any(forward):
+            use_forward = forward
+        else:
+            use_forward = dist >= 8
+
+        if not np.any(use_forward):
+            idx = int(np.argmin(dist))
             return float(xs[idx]), float(ys[idx])
 
-        candidates = np.where(ahead)[0]
-        best = candidates[int(np.argmax(dist[candidates]))]
-        return float(xs[best]), float(ys[best])
+        xs_f = xs[use_forward]
+        ys_f = ys[use_forward]
+        dist_f = dist[use_forward]
+        dx_f = dx[use_forward]
+        dy_f = dy[use_forward]
+
+        # Prefere ponto a ~target_distance a frente, nao o mais distante (evita apontar para lado errado).
+        ideal = self.target_distance_px
+        score = np.abs(dist_f - ideal) + np.maximum(0.0, dy_f) * 2.5
+        best = int(np.argmin(score))
+        tx = float(xs_f[best])
+        ty = float(ys_f[best])
+
+        if self._smooth_target_x is None:
+            self._smooth_target_x = tx
+            self._smooth_target_y = ty
+        else:
+            alpha = self.target_smoothing
+            self._smooth_target_x = alpha * tx + (1.0 - alpha) * self._smooth_target_x
+            self._smooth_target_y = alpha * ty + (1.0 - alpha) * self._smooth_target_y
+
+        return self._smooth_target_x, self._smooth_target_y
 
     def _estimate_arrow_angle(self, frame_bgr: np.ndarray, player_x: float, player_y: float) -> float | None:
         gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)

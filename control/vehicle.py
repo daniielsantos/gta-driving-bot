@@ -7,20 +7,19 @@ from keyboard_input import IS_WINDOWS, is_key_pressed, press_key, release_all_ke
 
 
 class VehicleController:
-    """Controla W/A/S/D via SendInput com aceleracao em pulsos e volante suave."""
+    """Controla W/A/S/D: W sustentado em reta, solta em curva, volante em pulsos."""
 
     def __init__(self, control_cfg: dict[str, Any]) -> None:
-        self.deadband_deg = float(control_cfg.get("steer_deadband_deg", 4))
-        self.max_pulse_ms = float(control_cfg.get("max_steer_pulse_ms", 55))
-        self.min_pulse_ms = float(control_cfg.get("min_steer_pulse_ms", 20))
-        self.gain_ms_per_deg = float(control_cfg.get("steer_gain_ms_per_deg", 1.0))
-        self.steer_interval_ms = float(control_cfg.get("steer_interval_ms", 70))
+        self.deadband_deg = float(control_cfg.get("steer_deadband_deg", 3))
+        self.max_pulse_ms = float(control_cfg.get("max_steer_pulse_ms", 60))
+        self.min_pulse_ms = float(control_cfg.get("min_steer_pulse_ms", 22))
+        self.gain_ms_per_deg = float(control_cfg.get("steer_gain_ms_per_deg", 1.1))
+        self.steer_interval_ms = float(control_cfg.get("steer_interval_ms", 60))
 
-        self.throttle_mode = str(control_cfg.get("throttle_mode", "pulse"))
-        self.throttle_pulse_ms = float(control_cfg.get("throttle_pulse_ms", 100))
-        self.throttle_interval_ms = float(control_cfg.get("throttle_interval_ms", 280))
-        self.throttle_cutoff_deg = float(control_cfg.get("throttle_cutoff_deg", 12))
-        self.throttle_sharp_cutoff_deg = float(control_cfg.get("throttle_sharp_cutoff_deg", 22))
+        self.throttle_mode = str(control_cfg.get("throttle_mode", "smart"))
+        self.throttle_pulse_ms = float(control_cfg.get("throttle_pulse_ms", 120))
+        self.throttle_interval_ms = float(control_cfg.get("throttle_interval_ms", 200))
+        self.throttle_cutoff_deg = float(control_cfg.get("throttle_cutoff_deg", 18))
         self.cruise_throttle = bool(control_cfg.get("cruise_throttle", True))
 
         self._last_steer_at = 0.0
@@ -51,24 +50,21 @@ class VehicleController:
             return "throttle-off"
 
         abs_error = abs(steer_error_deg or 0.0)
-        if abs_error >= self.throttle_sharp_cutoff_deg:
-            self._release_throttle()
-            return "coast-sharp"
         if abs_error >= self.throttle_cutoff_deg:
             self._release_throttle()
             return "coast-turn"
 
-        now = time.perf_counter()
-        if self.throttle_mode == "hold":
-            press_key("w")
-            return "throttle-hold"
+        if self.throttle_mode == "pulse":
+            now = time.perf_counter()
+            if (now - self._last_throttle_at) * 1000.0 < self.throttle_interval_ms:
+                return "throttle-wait"
+            tap_key("w", hold_ms=self.throttle_pulse_ms)
+            self._last_throttle_at = now
+            return "throttle-pulse"
 
-        if (now - self._last_throttle_at) * 1000.0 < self.throttle_interval_ms:
-            return "throttle-wait"
-
-        tap_key("w", hold_ms=self.throttle_pulse_ms)
-        self._last_throttle_at = now
-        return "throttle-pulse"
+        # smart / hold: W sustentado enquanto a reta permite
+        press_key("w")
+        return "throttle-hold"
 
     def steer(self, error_deg: float) -> str:
         if not IS_WINDOWS:
@@ -105,8 +101,5 @@ class VehicleController:
             return self._last_action
 
         steer_action = self.steer(steer_command_deg)
-        if steer_action in ("center", "steer-wait"):
-            self._last_action = f"{throttle_action}+{steer_action}"
-        else:
-            self._last_action = f"{throttle_action}+{steer_action}"
+        self._last_action = f"{throttle_action}+{steer_action}"
         return self._last_action

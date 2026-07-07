@@ -20,7 +20,9 @@
       "y": 0.5
     },
     "arrow_white_threshold": 200,
-    "min_gps_pixels": 40
+    "min_gps_pixels": 40,
+    "target_distance_px": 50,
+    "target_smoothing": 0.4
   },
   "road_view": {
     "roi": {
@@ -33,19 +35,19 @@
   },
   "control": {
     "gps_weight": 0.6,
-    "steer_deadband_deg": 4,
-    "steer_kp": 0.85,
-    "steer_kd": 0.25,
-    "max_steer_pulse_ms": 55,
-    "min_steer_pulse_ms": 20,
-    "steer_gain_ms_per_deg": 1.0,
-    "steer_interval_ms": 70,
+    "steer_deadband_deg": 3,
+    "steer_kp": 0.9,
+    "steer_kd": 0.3,
+    "error_smoothing": 0.45,
+    "max_steer_pulse_ms": 60,
+    "min_steer_pulse_ms": 22,
+    "steer_gain_ms_per_deg": 1.1,
+    "steer_interval_ms": 60,
     "cruise_throttle": true,
-    "throttle_mode": "pulse",
-    "throttle_pulse_ms": 100,
-    "throttle_interval_ms": 280,
-    "throttle_cutoff_deg": 12,
-    "throttle_sharp_cutoff_deg": 22,
+    "throttle_mode": "smart",
+    "throttle_pulse_ms": 120,
+    "throttle_interval_ms": 200,
+    "throttle_cutoff_deg": 18,
     "brake_distance_threshold": 0.35,
     "capture_fps": 30,
     "gps_lost_frames": 15,

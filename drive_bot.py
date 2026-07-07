@@ -93,6 +93,7 @@ def main() -> None:
             bot_log(f"[bot] {status}")
             if state.enabled:
                 navigator.reset()
+                detector.reset()
                 state.nav_state = NavState.IDLE
                 state.gps_lost_streak = 0
             else:
