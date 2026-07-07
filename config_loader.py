@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from minimap.detector import MinimapDetector
+
 CONFIG_PATH = Path(__file__).with_name("config.json")
 
 
@@ -22,3 +24,17 @@ def save_config(config: dict[str, Any], path: Path | None = None) -> None:
 
 def get_minimap_roi(config: dict[str, Any]) -> dict[str, int]:
     return dict(config["minimap"]["roi"])
+
+
+def build_minimap_detector(config: dict[str, Any]) -> MinimapDetector:
+    minimap = config["minimap"]
+    center = minimap.get("player_center_ratio", {"x": 0.5, "y": 0.5})
+    return MinimapDetector(
+        gps_hsv_lower=list(minimap["gps_color_hsv"]["lower"]),
+        gps_hsv_upper=list(minimap["gps_color_hsv"]["upper"]),
+        road_gray_range=list(minimap["road_gray_range"]),
+        player_center_ratio=(float(center["x"]), float(center["y"])),
+        arrow_white_threshold=int(minimap.get("arrow_white_threshold", 200)),
+        min_gps_pixels=int(minimap.get("min_gps_pixels", 40)),
+        target_distance_px=float(minimap.get("target_distance_px", 55.0)),
+    )

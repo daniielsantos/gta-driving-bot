@@ -110,7 +110,7 @@ pip install -r requirements.txt
 
 ## Fases de desenvolvimento
 
-### Fase 0 — Fundação (atual)
+### Fase 0 — Fundação
 
 - [x] Repositório e documentação de planejamento
 - [x] Estrutura de pastas e `config.json` base
@@ -144,19 +144,46 @@ python calibrate_minimap.py
 
 ---
 
-### Fase 1 — Navegação no minimapa
+### Fase 1 — Navegação no minimapa (atual)
 
 **Objetivo:** carro segue a linha do GPS em estrada reta e curvas suaves.
 
-| Tarefa | Detalhe |
-|--------|---------|
-| ROI do minimapa | Recorte fixo calibrado (canto inferior esquerdo) |
-| Detectar seta do jogador | Posição (x, y) e ângulo no minimapa |
-| Detectar linha do GPS | Cor roxa/laranja, polyline ou ponto-alvo à frente |
-| Controlador PID | Erro angular → A/D (pulsos curtos); distância → W/S |
-| Estados | `IDLE`, `NAVIGATING`, `STOPPED` |
+- [x] `drive_bot.py` — loop principal com hotkeys
+- [x] `minimap/navigator.py` — erro angular + PID (P + D)
+- [x] `control/vehicle.py` — W sustentado + A/D em pulsos via SendInput
+- [x] Estados `IDLE`, `NAVIGATING`, `STOPPED`
+- [x] Debug overlay opcional
 
 **Entregável:** bot segue rota marcada no GPS por 30–60 s sem sair da estrada em trecho simples.
+
+#### Uso
+
+```bash
+python drive_bot.py
+```
+
+| Tecla | Ação |
+|-------|------|
+| **F6** | Liga / desliga o bot |
+| **F7** | Pausa navegação (mantém captura) |
+| **F9** | Encerra o programa |
+
+1. Marque uma rota no GPS no jogo
+2. Pressione **F6** com o jogo em foco
+3. O bot acelera (W) e corrige direção com A/D
+4. Se perder o GPS por alguns frames, solta os controles (`STOPPED`)
+
+#### Ajuste fino (`config.json` → `control`)
+
+| Parâmetro | Descrição |
+|-----------|-----------|
+| `steer_deadband_deg` | Margem em graus antes de corrigir (menor = mais agressivo) |
+| `steer_kp` / `steer_kd` | Ganhos do PID angular |
+| `steer_gain_ms_per_deg` | Duração do pulso A/D por grau de erro |
+| `max_steer_pulse_ms` | Pulso máximo de volante |
+| `steer_interval_ms` | Intervalo mínimo entre pulsos A/D |
+| `gps_lost_frames` | Frames sem GPS antes de parar |
+| `debug_overlay` | Janela OpenCV com overlay do minimapa |
 
 **Limitação conhecida:** pode ir para calçada se só usar minimapa.
 
@@ -241,12 +268,15 @@ gta-driving-bot/
 ├── config.json
 ├── config_loader.py
 ├── bot_logger.py
+├── keyboard_input.py
 ├── calibrate_minimap.py
+├── drive_bot.py
 ├── minimap/
-│   ├── __init__.py
-│   └── detector.py
+│   ├── detector.py
+│   └── navigator.py
+├── control/
+│   └── vehicle.py
 ├── debug/
-│   ├── __init__.py
 │   └── recorder.py
 ├── assets/
 └── captures/                 # debug (gitignored)
@@ -338,11 +368,10 @@ Este projeto **reutiliza o mesmo padrão**, mudando o domínio (minimapa + pista
 
 1. ~~Criar `requirements.txt` e `config.json` mínimo~~
 2. ~~`calibrate_minimap.py` — ROI + preview ao vivo~~
-3. Detectar seta e linha GPS no minimapa (integrar em `drive_bot.py`)
-4. PID simples (W + A/D) em estrada vazia
-5. Fase 2: fusão com “seta na rua”
-6. Fase 3: waypoints e parada
-7. Fase 4: freio por obstáculo à frente
+3. ~~Detectar seta e linha GPS + `drive_bot.py` com PID~~
+4. Fase 2: fusão com “seta na rua” + visão frontal
+5. Fase 3: waypoints e parada
+6. Fase 4: freio por obstáculo à frente
 
 ---
 

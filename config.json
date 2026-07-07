@@ -34,10 +34,18 @@
   "control": {
     "gps_weight": 0.6,
     "steer_deadband_deg": 3,
+    "steer_kp": 1.0,
+    "steer_kd": 0.35,
     "max_steer_pulse_ms": 80,
+    "min_steer_pulse_ms": 25,
+    "steer_gain_ms_per_deg": 1.5,
+    "steer_interval_ms": 50,
     "cruise_throttle": true,
     "brake_distance_threshold": 0.35,
-    "capture_fps": 30
+    "capture_fps": 30,
+    "gps_lost_frames": 15,
+    "debug_overlay": false,
+    "debug_record_frames": false
   },
   "waypoints": [],
   "hotkeys": {

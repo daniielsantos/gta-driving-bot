@@ -27,7 +27,7 @@ import cv2
 import mss
 import numpy as np
 
-from config_loader import load_config, save_config
+from config_loader import build_minimap_detector, load_config, save_config
 from minimap.detector import MinimapDetector
 
 
@@ -44,16 +44,7 @@ def pick_hsv_from_pixel(frame_bgr: np.ndarray, x: int, y: int) -> tuple[list[int
 
 
 def build_detector_from_config(config: dict) -> MinimapDetector:
-    minimap = config["minimap"]
-    center = minimap.get("player_center_ratio", {"x": 0.5, "y": 0.5})
-    return MinimapDetector(
-        gps_hsv_lower=list(minimap["gps_color_hsv"]["lower"]),
-        gps_hsv_upper=list(minimap["gps_color_hsv"]["upper"]),
-        road_gray_range=list(minimap["road_gray_range"]),
-        player_center_ratio=(float(center["x"]), float(center["y"])),
-        arrow_white_threshold=int(minimap.get("arrow_white_threshold", 200)),
-        min_gps_pixels=int(minimap.get("min_gps_pixels", 40)),
-    )
+    return build_minimap_detector(config)
 
 
 def main() -> None:
