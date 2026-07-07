@@ -1,0 +1,48 @@
+{
+  "resolution": {
+    "width": 2560,
+    "height": 1440
+  },
+  "minimap": {
+    "roi": {
+      "left": 20,
+      "top": 900,
+      "width": 280,
+      "height": 280
+    },
+    "gps_color_hsv": {
+      "lower": [130, 80, 80],
+      "upper": [170, 255, 255]
+    },
+    "road_gray_range": [70, 150],
+    "player_center_ratio": {
+      "x": 0.5,
+      "y": 0.5
+    },
+    "arrow_white_threshold": 200,
+    "min_gps_pixels": 40
+  },
+  "road_view": {
+    "roi": {
+      "left": 800,
+      "top": 600,
+      "width": 960,
+      "height": 400
+    },
+    "lane_center_weight": 0.4
+  },
+  "control": {
+    "gps_weight": 0.6,
+    "steer_deadband_deg": 3,
+    "max_steer_pulse_ms": 80,
+    "cruise_throttle": true,
+    "brake_distance_threshold": 0.35,
+    "capture_fps": 30
+  },
+  "waypoints": [],
+  "hotkeys": {
+    "toggle": "f6",
+    "pause": "f7",
+    "quit": "f9"
+  }
+}
