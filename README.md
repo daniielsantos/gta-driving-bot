@@ -182,6 +182,11 @@ python drive_bot.py
 | `steer_gain_ms_per_deg` | Duração do pulso A/D por grau de erro |
 | `max_steer_pulse_ms` | Pulso máximo de volante |
 | `steer_interval_ms` | Intervalo mínimo entre pulsos A/D |
+| `throttle_mode` | `"pulse"` (padrão) ou `"hold"` (W sustentado) |
+| `throttle_pulse_ms` | Duração de cada toque no W |
+| `throttle_interval_ms` | Intervalo entre toques no W em reta |
+| `throttle_cutoff_deg` | Acima deste erro, solta W na curva |
+| `throttle_sharp_cutoff_deg` | Curva fechada — só desliza, sem acelerar |
 | `gps_lost_frames` | Frames sem GPS antes de parar |
 | `debug_overlay` | Janela OpenCV com overlay do minimapa |
 

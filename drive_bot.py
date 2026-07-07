@@ -134,6 +134,7 @@ def main() -> None:
                     state.last_action = vehicle.update(
                         nav.steer_command_deg,
                         throttle=True,
+                        steer_error_deg=nav.steer_error_deg,
                     )
                 else:
                     state.gps_lost_streak += 1
@@ -145,6 +146,7 @@ def main() -> None:
                         state.last_action = vehicle.update(
                             nav.steer_command_deg,
                             throttle=state.nav_state == NavState.NAVIGATING,
+                            steer_error_deg=nav.steer_error_deg,
                         )
             elif state.enabled and state.paused:
                 state.last_action = "paused"
