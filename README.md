@@ -82,6 +82,30 @@ Reaproveita conceitos do fishing bot:
 - Resolução de referência: **2560×1440** (recalibrável)
 - Jogo em **foco** (janela ativa)
 
+## Instalação
+
+```bash
+git clone https://github.com/daniielsantos/gta-driving-bot.git
+cd gta-driving-bot
+python -m venv .venv
+```
+
+**Windows (PowerShell):**
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+**Linux / macOS:**
+
+```bash
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+> A calibração do minimapa (`calibrate_minimap.py`) funciona em qualquer SO com captura de tela. O controle do veículo via `SendInput` será Windows-only (Fase 1+).
+
 ---
 
 ## Fases de desenvolvimento
@@ -89,11 +113,34 @@ Reaproveita conceitos do fishing bot:
 ### Fase 0 — Fundação (atual)
 
 - [x] Repositório e documentação de planejamento
-- [ ] Estrutura de pastas e `config.json` base
-- [ ] `requirements.txt`
-- [ ] Calibração da ROI do minimapa
+- [x] Estrutura de pastas e `config.json` base
+- [x] `requirements.txt`
+- [x] Calibração da ROI do minimapa (`calibrate_minimap.py`)
 
 **Entregável:** projeto clonável com README e calibração do minimapa funcionando.
+
+#### Calibração do minimapa (primeira vez)
+
+Com o jogo aberto e uma rota marcada no GPS:
+
+```bash
+python calibrate_minimap.py
+```
+
+| Tecla | Ação |
+|-------|------|
+| Setas / IJKL | Move a ROI |
+| W / A / X / D | Ajusta largura e altura da ROI |
+| `[` `]` / `9` `0` | Matiz (H) do GPS |
+| `;` `'` | Saturação (S) do GPS |
+| `,` `.` | Brilho (V) do GPS |
+| `-` `=` | Cinza mínimo da rua |
+| `R` `F` | Cinza máximo da rua |
+| Clique esquerdo | Pega HSV do pixel (painel esquerdo) |
+| `S` | Salva em `config.json` |
+| `Q` / `ESC` | Sair |
+
+**Objetivo:** máscara do GPS cobrindo a rota roxa, jogador sobre pixel de rua (borda verde), status `ATIVO`.
 
 ---
 
@@ -184,29 +231,25 @@ Reaproveita conceitos do fishing bot:
 
 ---
 
-## Estrutura de pastas (planejada)
+## Estrutura de pastas
 
 ```
 gta-driving-bot/
-├── README.md                 # este arquivo
-├── PLANNING.md               # notas técnicas detalhadas (opcional)
+├── README.md
+├── PLANNING.md
 ├── requirements.txt
-├── config.json               # ROIs, cores, waypoints, PID
-├── calibrate_minimap.py      # calibra ROI e cores do minimapa
-├── calibrate_road.py         # calibra ROI da visão frontal (fase 2)
-├── drive_bot.py              # loop principal + hotkeys
+├── config.json
+├── config_loader.py
+├── bot_logger.py
+├── calibrate_minimap.py
 ├── minimap/
-│   ├── detector.py           # seta, linha GPS, pixels de rua
-│   └── navigator.py          # erro angular, distância, waypoints
-├── vision/
-│   ├── lane.py               # asfalto / centro da faixa
-│   └── obstacle.py           # freio por área livre
-├── control/
-│   ├── vehicle.py            # W/A/S/D via SendInput
-│   └── fusion.py             # combina camadas
+│   ├── __init__.py
+│   └── detector.py
 ├── debug/
-│   └── recorder.py           # grava frames (como no fishing bot)
-└── captures/                 # screenshots de debug (gitignored)
+│   ├── __init__.py
+│   └── recorder.py
+├── assets/
+└── captures/                 # debug (gitignored)
 ```
 
 ---
@@ -293,9 +336,9 @@ Este projeto **reutiliza o mesmo padrão**, mudando o domínio (minimapa + pista
 
 ## Próximos passos (implementação)
 
-1. Criar `requirements.txt` e `config.json` mínimo
-2. `calibrate_minimap.py` — ROI + preview ao vivo
-3. Detectar seta e linha GPS no minimapa
+1. ~~Criar `requirements.txt` e `config.json` mínimo~~
+2. ~~`calibrate_minimap.py` — ROI + preview ao vivo~~
+3. Detectar seta e linha GPS no minimapa (integrar em `drive_bot.py`)
 4. PID simples (W + A/D) em estrada vazia
 5. Fase 2: fusão com “seta na rua”
 6. Fase 3: waypoints e parada
